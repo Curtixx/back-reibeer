@@ -1,3 +1,95 @@
+# Reibeer Backend - Guia para Agentes AI
+
+Este guia fornece contexto essencial para trabalhar com eficiência neste backend Laravel do Reibeer.
+
+## Domínio do Negócio
+
+Sistema de PDV (Ponto de Venda) para gerenciamento de:
+
+- Produtos (bebidas) com preços diferenciados (normal/PIX)
+- Combos (agrupamentos de produtos com quantidades)
+- Funcionários 
+- Caixas (sessões de vendas com valores iniciais/finais)
+
+### Entidades Principais
+
+```mermaid
+graph LR
+    Product[Produto] -- n:m --> Combo
+    Combo -- 1:n --> ComboProduct[Combo_Produto]
+    ComboProduct -- n:1 --> Product
+    Cashier[Caixa] -- n:1 --> User[Usuário]
+    
+```
+
+## Padrões de Código
+
+### Soft Deletes via is_active
+Produtos, Combos e Funcionários usam flag `is_active` ao invés de `deleted_at`:
+
+```php
+// Filtragem padrão em listagens
+Product::where('is_active', true)->get();
+
+// "Deleção" via update
+$product->update(['is_active' => false]); 
+```
+
+### Validação de Requisições
+- Cada operação tem seu Form Request dedicado em `app/Http/Requests/`
+- Preços sempre validados como `numeric|min:0`
+- Quantidades sempre como `integer|min:1` 
+- Email de funcionário tem unique constraint
+
+### Transações DB
+Operações de escrita são protegidas em transações:
+
+```php
+DB::transaction(function () use ($request) {
+    // Criação/Update aqui
+});
+```
+
+## Arquitetura API
+
+### Rotas Protegidas vs Públicas
+- Públicas: Listagem e visualização de produtos/combos/funcionários 
+- Protegidas (auth:sanctum): Todas operações de escrita e gestão de caixa
+
+### Convenções de Response
+- Sucesso: 
+  - GET: 200 + dados
+  - POST: 201 + recurso criado
+  - PUT: 200 + recurso atualizado 
+  - DELETE: 204 sem conteúdo
+- Erros:
+  - 404: Recurso não encontrado
+  - 500: Erro interno com mensagem em português
+
+### Preços Diferenciados
+Produtos e Combos tem 3 preços:
+- `cost_price`: Preço de custo (só produtos)
+- `sale_price`: Preço de venda normal
+- `pix_price`: Preço opcional com desconto PIX
+
+## Fluxo de Caixa
+
+1. Abertura: POST /cashier/open
+   - Requer valor inicial
+   - Registra usuário e timestamp
+
+2. Verificação: GET /cashier/open
+   - Retorna ID do caixa aberto mais recente
+   - Ordenado por opened_at DESC
+
+3. Fechamento: POST /cashier/close
+   - Requer ID do caixa e total vendido
+   - Registra usuário e timestamp de fechamento
+
+## Guidelines Detalhadas
+
+Veja as guidelines completas do framework Laravel abaixo.
+
 <laravel-boost-guidelines>
 === foundation rules ===
 
