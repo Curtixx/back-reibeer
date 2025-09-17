@@ -15,18 +15,18 @@ class CashierController extends Controller
     {
         try {
             $cashier = Cashier::create([
-                'initial_amount' => $request->safe()->initial_amount,
+                'initial_amount' => $request->validated()['initial_amount'],
                 'user_id_open' => Auth::user()->id,
                 'opened_at' => now(),
             ]);
 
-            return response()->json($cashier->id);
+            return response()->json(['id' => $cashier->id, 'message' => 'Caixa aberto com sucesso'], 201);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to open cashier', 'message' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Erro ao abrir caixa', 'message' => $e->getMessage()], 500);
         }
     }
 
-    public function cashierOpen(Request $request)
+    public function cashierOpened(Request $request)
     {
         try {
             $cashierOpen = Cashier::query()
@@ -34,24 +34,31 @@ class CashierController extends Controller
                 ->orderBy('opened_at', 'DESC')
                 ->first();
 
-            return response()->json($cashierOpen->id);
+            if (! $cashierOpen) {
+                return response()->json(['error' => 'Nenhum caixa aberto encontrado'], 404);
+            }
+
+            return response()->json(['id' => $cashierOpen->id], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to find cashier open', 'message' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Erro ao buscar caixa aberto', 'message' => $e->getMessage()], 500);
         }
     }
 
     public function closeCashier(CloseCashierRequest $request)
     {
         try {
-            Cashier::findOrFail($request->safe()->id_cashier)
-                ->update([
-                    'user_id_close' => Auth::user()->id,
-                    'closed_at' => now(),
-                    'total_sales' => $request->safe()->total_sales,
-                    'status' => 'fechado',
-                ]);
+            $cashier = Cashier::findOrFail($request->validated()['id_cashier']);
+
+            $cashier->update([
+                'user_id_close' => Auth::user()->id,
+                'closed_at' => now(),
+                'total_sales' => $request->validated()['total_sales'],
+                'status' => 'fechado',
+            ]);
+
+            return response()->json(['message' => 'Caixa fechado com sucesso'], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to close chasier', 'message' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Erro ao fechar caixa', 'message' => $e->getMessage()], 500);
         }
     }
 }
