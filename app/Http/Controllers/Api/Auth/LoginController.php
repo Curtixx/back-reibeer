@@ -3,71 +3,75 @@
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
         try {
-            $credentials = $request->validate([
-                'email' => ['required', 'email'],
-                'password' => ['required'],
-            ]);
+            $user = User::where('email', $request->validated()['email'])->first();
 
-            if (Auth::attempt($credentials)) {
-                $user = Auth::user();
-                $token = $user->createToken('api-token')->plainTextToken;
-
-                return response()->json([
-                    'access_token' => $token,
-                    'token_type' => 'Bearer',
-                    'user' => $user,
-                ], 200);
+            if (! $user || ! Hash::check($request->validated()['password'], $user->password)) {
+                throw ValidationException::withMessages([
+                    'email' => ['As credenciais fornecidas são inválidas.'],
+                ]);
             }
 
-            return response()->json(['error' => 'Unauthorized'], 401);
+            $user->tokens()->delete();
+            $token = $user->createToken('auth-token-'.now()->format('Y-m-d-H-i-s'))->plainTextToken;
+
+            return response()->json([
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+                'user' => $user,
+            ], 200);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'error' => 'Credenciais inválidas',
+                'messages' => $e->errors(),
+            ], 422);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Erro ao registrar usuário!'], 500);
+            return response()->json(['error' => 'Erro interno do servidor'], 500);
         }
     }
 
     public function logout(Request $request)
     {
         try {
-            $request->user()->tokens()->delete();            
-            Auth::logout();
-            return response()->json(['message' => 'Logout realizado com sucesso.']);
+            $request->user()->tokens()->where('id', $request->user()->currentAccessToken()->id)->delete();
+
+            return response()->json(['message' => 'Logout realizado com sucesso.'], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Erro ao deslogar usuário!'], 500);
+            return response()->json(['error' => 'Erro ao realizar logout'], 500);
         }
     }
 
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
         try {
-            $credentials = $request->validate([
-                'name' => ['required', 'string', 'max:255'],
-                'email' => ['required', 'email', 'max:255', 'unique:users'],
-                'password' => ['required', 'min:8'],
-            ]);
+            $validated = $request->validated();
 
             $user = User::create([
-                'name' => $credentials['name'],
-                'email' => $credentials['email'],
-                'password' => bcrypt($credentials['password']),
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
             ]);
 
-            $token = $user->createToken('api-token')->plainTextToken;
+            $token = $user->createToken('auth-token-'.now()->format('Y-m-d-H-i-s'))->plainTextToken;
+
             return response()->json([
                 'access_token' => $token,
                 'token_type' => 'Bearer',
                 'user' => $user,
             ], 201);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Erro ao registrar usuário!'], 500);
+            return response()->json(['error' => 'Erro ao registrar usuário'], 500);
         }
     }
 }
