@@ -4,19 +4,25 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreStockRequest;
+use App\Http\Requests\UpdateStockQuantityRequest;
 use App\Http\Requests\UpdateStockRequest;
 use App\Http\Resources\StockResource;
 use App\Models\Stock;
+use App\Services\StockService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class StockController extends Controller
 {
+    public function __construct(
+        protected StockService $stockService
+    ) {}
+
     public function index(): JsonResponse
     {
         try {
             $stocks = Stock::with('product')->get();
+
             return response()->json(new StockResource($stocks), 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao buscar estoque!'], 500);
@@ -32,6 +38,7 @@ class StockController extends Controller
             $stock = DB::transaction(function () use ($request) {
                 return Stock::create($request->validated());
             });
+
             return response()->json(new StockResource($stock), 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao criar estoque!'], 500);
@@ -57,6 +64,7 @@ class StockController extends Controller
     {
         try {
             $stock->update($request->validated());
+
             return response()->json(new StockResource($stock), 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao atualizar estoque!'], 500);
@@ -70,9 +78,38 @@ class StockController extends Controller
     {
         try {
             $stock->delete();
+
             return response()->json(null, 204);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao deletar estoque!'], 500);
+        }
+    }
+
+    /**
+     * Update stock quantity (add or remove).
+     */
+    public function updateQuantity(UpdateStockQuantityRequest $request, Stock $stock): JsonResponse
+    {
+        try {
+            $validated = $request->validated();
+
+            if (data_get($validated, 'action') === 'add') {
+                $stock = $this->stockService->addQuantity(
+                    productId: data_get($stock, 'product_id'),
+                    quantity: data_get($validated, 'quantity'),
+                    description: data_get($validated, 'description')
+                );
+            } else {
+                $stock = $this->stockService->removeQuantity(
+                    productId: data_get($stock, 'product_id'),
+                    quantity: data_get($validated, 'quantity'),
+                    description: data_get($validated, 'description')
+                );
+            }
+
+            return response()->json(new StockResource($stock), 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 }
