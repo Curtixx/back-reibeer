@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ComboController;
 use App\Http\Controllers\Api\EmployeesController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\SaleController;
+use App\Http\Controllers\Api\StockController;
 use Illuminate\Support\Facades\Route;
 
 // Rotas de autenticação
@@ -46,6 +47,14 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::get('/cashier/opened', [CashierController::class, 'cashierOpened']);
     Route::post('/cashier/open', [CashierController::class, 'openCashier']);
     Route::post('/cashier/close', [CashierController::class, 'closeCashier']);
+
+    // Estoque
+    Route::get('/stocks', [StockController::class, 'index']);
+    Route::get('/stocks/{stock}', [StockController::class, 'show']);
+    Route::post('/stocks', [StockController::class, 'store']);
+    Route::put('/stocks/{stock}', [StockController::class, 'update']);
+    Route::put('/stocks/update-quantity/{stock}', [StockController::class, 'updateQuantity']);
+    Route::delete('/stocks/{stock}', [StockController::class, 'destroy']);
 
     // Vendas
     Route::post('/sales', [SaleController::class, 'store']);

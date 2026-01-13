@@ -32,7 +32,7 @@ class EmployeesController extends Controller
     {
         try {
             $employee = DB::transaction(function () use ($request) {
-                Employee::create($request->validated());
+                return Employee::create($request->validated());
             });
 
             return response()->json($employee, 201);
