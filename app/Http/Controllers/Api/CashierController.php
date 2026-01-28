@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\CashierStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Cashier\CloseCashierRequest;
 use App\Http\Requests\Cashier\OpenCashierRequest;
@@ -30,7 +31,7 @@ class CashierController extends Controller
     {
         try {
             $cashierOpen = Cashier::query()
-                ->where('status', 'aberto')
+                ->where('status', CashierStatus::Open)
                 ->orderBy('opened_at', 'DESC')
                 ->first();
 
@@ -53,7 +54,7 @@ class CashierController extends Controller
                 'user_id_close' => Auth::user()->id,
                 'closed_at' => now(),
                 'total_sales' => $request->validated()['total_sales'],
-                'status' => 'fechado',
+                'status' => CashierStatus::Closed,
             ]);
 
             return response()->json(['message' => 'Caixa fechado com sucesso'], 200);

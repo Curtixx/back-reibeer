@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\CashierStatus;
 use Illuminate\Database\Eloquent\Model;
 
 class Cashier extends Model
@@ -15,6 +16,13 @@ class Cashier extends Model
         'total_sales',
         'status',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => CashierStatus::class,
+        ];
+    }
 
     public function userOpen()
     {

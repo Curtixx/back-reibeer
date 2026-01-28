@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\CashierController;
 use App\Http\Controllers\Api\ComboController;
 use App\Http\Controllers\Api\EmployeesController;
+use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\SaleController;
 use App\Http\Controllers\Api\StockController;
@@ -25,6 +26,8 @@ Route::get('/employees', [EmployeesController::class, 'index']);
 Route::get('/employees/{employee}', [EmployeesController::class, 'show']);
 Route::get('/combos', [ComboController::class, 'index']);
 Route::get('/combos/{combo}', [ComboController::class, 'show']);
+Route::get('/orders', [OrderController::class, 'index']);
+Route::get('/orders/{order}', [OrderController::class, 'show']);
 
 // Rotas protegidas
 Route::middleware('auth:sanctum')->group(function (): void {
@@ -42,6 +45,11 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::post('/combos', [ComboController::class, 'store']);
     Route::put('/combos/{combo}', [ComboController::class, 'update']);
     Route::delete('/combos/{combo}', [ComboController::class, 'destroy']);
+
+    // Gestão de comandas
+    Route::post('/orders', [OrderController::class, 'store']);
+    Route::put('/orders/{order}', [OrderController::class, 'update']);
+    Route::delete('/orders/{order}', [OrderController::class, 'destroy']);
 
     // Gestão de caixa
     Route::get('/cashier/opened', [CashierController::class, 'cashierOpened']);
