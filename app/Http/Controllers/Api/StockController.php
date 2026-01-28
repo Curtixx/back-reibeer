@@ -45,6 +45,7 @@ class StockController extends Controller
                     $stock = Stock::create([
                         'product_id' => $productId,
                         'quantity' => $quantity['quantity'],
+                        'description' => $request->validated('description'),
                     ]);
 
                     $stocks->push($stock);
