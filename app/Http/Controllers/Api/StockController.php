@@ -23,7 +23,7 @@ class StockController extends Controller
         try {
             $stocks = Stock::with('product')->get();
 
-            return response()->json(new StockResource($stocks), 200);
+            return response()->json(StockResource::collection($stocks), 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao buscar estoque!'], 500);
         }
@@ -35,11 +35,25 @@ class StockController extends Controller
     public function store(StoreStockRequest $request): JsonResponse
     {
         try {
-            $stock = DB::transaction(function () use ($request) {
-                return Stock::create($request->validated());
+            $stocks = DB::transaction(function () use ($request) {
+                $products = collect($request->validated('products'))->mapWithKeys(function ($item) {
+                    return [$item['id'] => ['quantity' => $item['quantity']]];
+                });
+
+                $stocks = collect();
+                foreach ($products as $productId => $quantity) {
+                    $stock = Stock::create([
+                        'product_id' => $productId,
+                        'quantity' => $quantity['quantity'],
+                    ]);
+
+                    $stocks->push($stock);
+                }
+
+                return $stocks;
             });
 
-            return response()->json(new StockResource($stock), 200);
+            return response()->json(StockResource::collection($stocks), 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao criar estoque!'], 500);
         }

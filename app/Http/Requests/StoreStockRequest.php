@@ -23,8 +23,9 @@ class StoreStockRequest extends FormRequest
     {
         return [
             'description' => 'required|string|max:255',
-            'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|integer|min:0',
+            'products' => 'required|array|min:1',
+            'products.*.id' => 'required|exists:products,id',
+            'products.*.quantity' => 'required|integer|min:1',
         ];
     }
 }
