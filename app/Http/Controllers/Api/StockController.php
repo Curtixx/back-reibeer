@@ -35,24 +35,10 @@ class StockController extends Controller
     public function store(StoreStockRequest $request): JsonResponse
     {
         try {
-            $stocks = DB::transaction(function () use ($request) {
-                $products = collect($request->validated('products'))->mapWithKeys(function ($item) {
-                    return [$item['id'] => ['quantity' => $item['quantity']]];
-                });
-
-                $stocks = collect();
-                foreach ($products as $productId => $quantity) {
-                    $stock = Stock::create([
-                        'product_id' => $productId,
-                        'quantity' => $quantity['quantity'],
-                        'description' => $request->validated('description'),
-                    ]);
-
-                    $stocks->push($stock);
-                }
-
-                return $stocks;
-            });
+            $stocks = $this->stockService->createOrAddStocks(
+                products: $request->validated('products'),
+                description: $request->validated('description')
+            );
 
             return response()->json(StockResource::collection($stocks), 200);
         } catch (\Exception $e) {

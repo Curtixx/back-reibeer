@@ -75,4 +75,42 @@ class StockService
             return $stock;
         });
     }
+
+    /**
+     * Create or add stocks for multiple products.
+     */
+    public function createOrAddStocks(array $products, ?string $description = null): \Illuminate\Support\Collection
+    {
+        return DB::transaction(function () use ($products, $description) {
+            $productIds = collect($products)->pluck('id')->toArray();
+            $existingStocks = Stock::whereIn('product_id', $productIds)->get()->keyBy('product_id');
+
+            $stocks = collect();
+
+            foreach ($products as $product) {
+                $productId = data_get($product, 'id');
+                $quantity = data_get($product, 'quantity');
+
+                $existingStock = $existingStocks->get($productId);
+
+                if ($existingStock) {
+                    $stock = $this->addQuantity(
+                        productId: $productId,
+                        quantity: $quantity,
+                        description: $description
+                    );
+                } else {
+                    $stock = Stock::create([
+                        'product_id' => $productId,
+                        'quantity' => $quantity,
+                        'description' => $description,
+                    ]);
+                }
+
+                $stocks->push($stock);
+            }
+
+            return $stocks;
+        });
+    }
 }
