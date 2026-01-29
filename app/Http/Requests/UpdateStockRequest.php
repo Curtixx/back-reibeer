@@ -22,7 +22,6 @@ class UpdateStockRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'description' => 'sometimes|required|string|max:255',
             'product_id' => 'sometimes|required|exists:products,id',
             'quantity' => 'sometimes|required|integer|min:0',
         ];

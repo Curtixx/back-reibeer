@@ -24,7 +24,6 @@ class UpdateStockQuantityRequest extends FormRequest
         return [
             'action' => 'required|string|in:add,remove',
             'quantity' => 'required|integer|min:1',
-            'description' => 'nullable|string|max:255',
         ];
     }
 

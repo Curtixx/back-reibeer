@@ -37,7 +37,6 @@ class StockController extends Controller
         try {
             $stocks = $this->stockService->createOrAddStocks(
                 products: $request->validated('products'),
-                description: $request->validated('description')
             );
 
             return response()->json(StockResource::collection($stocks), 200);
@@ -98,13 +97,11 @@ class StockController extends Controller
                 $stock = $this->stockService->addQuantity(
                     productId: data_get($stock, 'product_id'),
                     quantity: data_get($validated, 'quantity'),
-                    description: data_get($validated, 'description')
                 );
             } else {
                 $stock = $this->stockService->removeQuantity(
                     productId: data_get($stock, 'product_id'),
                     quantity: data_get($validated, 'quantity'),
-                    description: data_get($validated, 'description')
                 );
             }
 

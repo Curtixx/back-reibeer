@@ -14,9 +14,9 @@ class StockService
     /**
      * Add quantity to stock.
      */
-    public function addQuantity(int $productId, int $quantity, ?string $description = null): Stock
+    public function addQuantity(int $productId, int $quantity): Stock
     {
-        return DB::transaction(function () use ($productId, $quantity, $description) {
+        return DB::transaction(function () use ($productId, $quantity) {
             $stock = Stock::firstOrCreate(
                 ['product_id' => $productId],
                 ['quantity' => 0]
@@ -26,14 +26,10 @@ class StockService
             $stock->increment('quantity', $quantity);
             $stock->refresh();
 
-            if ($description) {
-                $stock->update(['description' => $description]);
-            }
-
             $this->logService->log(
                 model: $stock,
                 action: 'quantity_added',
-                description: "Adicionado {$quantity} unidades ao estoque",
+                description: "Adicionado {$quantity} unidades ao estoque do produto ID {$productId}",
                 columnName: 'quantity',
                 oldValue: $oldQuantity,
                 newValue: $stock->quantity
@@ -46,9 +42,9 @@ class StockService
     /**
      * Remove quantity from stock.
      */
-    public function removeQuantity(int $productId, int $quantity, ?string $description = null): Stock
+    public function removeQuantity(int $productId, int $quantity): Stock
     {
-        return DB::transaction(function () use ($productId, $quantity, $description) {
+        return DB::transaction(function () use ($productId, $quantity) {
             $stock = Stock::where('product_id', $productId)->firstOrFail();
 
             if ($stock->quantity < $quantity) {
@@ -59,14 +55,10 @@ class StockService
             $stock->decrement('quantity', $quantity);
             $stock->refresh();
 
-            if ($description) {
-                $stock->update(['description' => $description]);
-            }
-
             $this->logService->log(
                 model: $stock,
                 action: 'quantity_removed',
-                description: "Removido {$quantity} unidades do estoque",
+                description: "Removido {$quantity} unidades do estoque do produto ID {$productId}",
                 columnName: 'quantity',
                 oldValue: $previousQuantity,
                 newValue: $stock->quantity
@@ -79,9 +71,9 @@ class StockService
     /**
      * Create or add stocks for multiple products.
      */
-    public function createOrAddStocks(array $products, ?string $description = null): \Illuminate\Support\Collection
+    public function createOrAddStocks(array $products): \Illuminate\Support\Collection
     {
-        return DB::transaction(function () use ($products, $description) {
+        return DB::transaction(function () use ($products) {
             $productIds = collect($products)->pluck('id')->toArray();
             $existingStocks = Stock::whereIn('product_id', $productIds)->get()->keyBy('product_id');
 
@@ -97,13 +89,11 @@ class StockService
                     $stock = $this->addQuantity(
                         productId: $productId,
                         quantity: $quantity,
-                        description: $description
                     );
                 } else {
                     $stock = Stock::create([
                         'product_id' => $productId,
                         'quantity' => $quantity,
-                        'description' => $description,
                     ]);
                 }
 
