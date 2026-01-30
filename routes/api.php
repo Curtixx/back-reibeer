@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\CashierController;
+use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ComboController;
 use App\Http\Controllers\Api\EmployeesController;
 use App\Http\Controllers\Api\OrderController;
@@ -28,6 +29,8 @@ Route::get('/combos', [ComboController::class, 'index']);
 Route::get('/combos/{combo}', [ComboController::class, 'show']);
 Route::get('/orders', [OrderController::class, 'index']);
 Route::get('/orders/{order}', [OrderController::class, 'show']);
+Route::get('/categories', [CategoryController::class, 'index']);
+Route::get('/categories/{category}', [CategoryController::class, 'show']);
 
 // Rotas protegidas
 Route::middleware('auth:sanctum')->group(function (): void {
@@ -45,6 +48,11 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::post('/combos', [ComboController::class, 'store']);
     Route::put('/combos/{combo}', [ComboController::class, 'update']);
     Route::delete('/combos/{combo}', [ComboController::class, 'destroy']);
+
+    // Gestão de categorias
+    Route::post('/categories', [CategoryController::class, 'store']);
+    Route::put('/categories/{category}', [CategoryController::class, 'update']);
+    Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
 
     // Gestão de comandas
     Route::post('/orders', [OrderController::class, 'store']);

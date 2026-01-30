@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateProdutcRequest extends FormRequest
+class UpdateCategoryRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,14 +23,20 @@ class UpdateProdutcRequest extends FormRequest
     {
         return [
             'name' => 'sometimes|required|string|max:255',
-            'description' => 'nullable|string',
-            'sale_price' => 'sometimes|required|numeric|min:0',
-            'cost_price' => 'sometimes|required|numeric|min:0',
-            'pix_price' => 'nullable|numeric|min:0',
-            'stock_notice' => 'sometimes|required|integer|min:0',
-            'is_active' => 'sometimes|boolean',
-            'categories' => 'nullable|array',
-            'categories.*' => 'integer|exists:categories,id',
+        ];
+    }
+
+    /**
+     * Get custom error messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'O nome da categoria é obrigatório.',
+            'name.string' => 'O nome da categoria deve ser um texto.',
+            'name.max' => 'O nome da categoria não pode ter mais de 255 caracteres.',
         ];
     }
 }
