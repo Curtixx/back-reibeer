@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\DTOS\AddProductsToOrderDTO;
+use App\DTOS\RemoveProductsFromOrderDTO;
 use App\DTOS\StoreOrderDTO;
 use App\DTOS\UpdateOrderDTO;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AddProductsToOrderRequest;
 use App\Http\Requests\IndexOrderRequest;
+use App\Http\Requests\RemoveProductsFromOrderRequest;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Http\Resources\OrderResource;
@@ -107,6 +111,36 @@ class OrderController extends Controller
             return response()->json(['message' => 'Comanda excluída com sucesso'], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Falha ao excluir comanda', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Add products to an order.
+     */
+    public function addProducts(AddProductsToOrderRequest $request, Order $order)
+    {
+        try {
+            $productsDTO = AddProductsToOrderDTO::fromArray($request->validated());
+            $order = $this->orderService->addProductsToOrder($order, $productsDTO);
+
+            return response()->json(new OrderResource($order));
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Falha ao adicionar produtos à comanda', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Remove products from an order.
+     */
+    public function removeProducts(RemoveProductsFromOrderRequest $request, Order $order)
+    {
+        try {
+            $productsDTO = RemoveProductsFromOrderDTO::fromArray($request->validated());
+            $order = $this->orderService->removeProductsFromOrder($order, $productsDTO);
+
+            return response()->json(new OrderResource($order));
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Falha ao remover produtos da comanda', 'message' => $e->getMessage()], 500);
         }
     }
 }

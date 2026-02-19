@@ -58,6 +58,8 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::post('/orders', [OrderController::class, 'store']);
     Route::put('/orders/{order}', [OrderController::class, 'update']);
     Route::delete('/orders/{order}', [OrderController::class, 'destroy']);
+    Route::post('/orders/{order}/add-products', [OrderController::class, 'addProducts']);
+    Route::post('/orders/{order}/remove-products', [OrderController::class, 'removeProducts']);
 
     // Gestão de caixa
     Route::get('/cashier/opened', [CashierController::class, 'cashierOpened']);
