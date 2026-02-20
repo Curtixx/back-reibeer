@@ -7,13 +7,13 @@ use App\Interfaces\DTOInterface;
 class RemoveProductsFromOrderDTO implements DTOInterface
 {
     public function __construct(
-        public readonly array $product_ids,
+        public readonly array $products,
     ) {}
 
     public static function fromArray(array $data): self
     {
         return new self(
-            product_ids: data_get($data, 'product_ids', []),
+            products: data_get($data, 'products', []),
         );
     }
 }

@@ -22,8 +22,9 @@ class RemoveProductsFromOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'product_ids' => 'required|array|min:1',
-            'product_ids.*' => 'required|integer|exists:products,id',
+            'products' => 'required|array|min:1',
+            'products.*.id' => 'required|exists:products,id',
+            'products.*.quantity' => 'required|integer|min:1',
         ];
     }
 
@@ -33,10 +34,12 @@ class RemoveProductsFromOrderRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'product_ids.required' => 'É necessário informar pelo menos um produto para remover.',
-            'product_ids.min' => 'É necessário informar pelo menos um produto para remover.',
-            'product_ids.*.required' => 'O ID do produto é obrigatório.',
-            'product_ids.*.exists' => 'O produto selecionado não existe.',
+            'products.required' => 'É necessário informar pelo menos um produto para remover.',
+            'products.min' => 'É necessário informar pelo menos um produto para remover.',
+            'products.*.id.required' => 'O ID do produto é obrigatório.',
+            'products.*.id.exists' => 'O produto selecionado não existe.',
+            'products.*.quantity.required' => 'A quantidade do produto é obrigatória.',
+            'products.*.quantity.min' => 'A quantidade do produto deve ser no mínimo 1.',
         ];
     }
 }

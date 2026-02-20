@@ -96,7 +96,25 @@ class OrderService
     public function removeProductsFromOrder(Order $order, RemoveProductsFromOrderDTO $productsDTO): Order
     {
         return DB::transaction(function () use ($order, $productsDTO) {
-            $order->products()->detach($productsDTO->product_ids);
+            $productIds = collect($productsDTO->products)->pluck('id')->toArray();
+
+            $existingPivots = $order->orderProducts()
+                ->whereIn('product_id', $productIds)
+                ->get()
+                ->keyBy('product_id');
+
+            foreach ($productsDTO->products as $productData) {
+                if ($existingPivots->has($productData['id'])) {
+                    $pivot = $existingPivots->get($productData['id']);
+                    $newQuantity = $pivot->quantity - $productData['quantity'];
+
+                    if ($newQuantity <= 0) {
+                        $order->products()->detach($productData['id']);
+                    } else {
+                        $pivot->update(['quantity' => $newQuantity]);
+                    }
+                }
+            }
 
             return $order->fresh()->load('orderProducts.product');
         });
