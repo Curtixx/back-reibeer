@@ -74,13 +74,16 @@ class OrderService
     public function addProductsToOrder(Order $order, AddProductsToOrderDTO $productsDTO): Order
     {
         return DB::transaction(function () use ($order, $productsDTO) {
-            foreach ($productsDTO->products as $productData) {
-                $existingPivot = $order->orderProducts()
-                    ->where('product_id', $productData['id'])
-                    ->first();
+            $productIds = collect($productsDTO->products)->pluck('id')->toArray();
 
-                if ($existingPivot) {
-                    $existingPivot->increment('quantity', $productData['quantity']);
+            $existingPivots = $order->orderProducts()
+                ->whereIn('product_id', $productIds)
+                ->get()
+                ->keyBy('product_id');
+
+            foreach ($productsDTO->products as $productData) {
+                if ($existingPivots->has($productData['id'])) {
+                    $existingPivots->get($productData['id'])->increment('quantity', $productData['quantity']);
                 } else {
                     $order->products()->attach($productData['id'], ['quantity' => $productData['quantity']]);
                 }
