@@ -31,7 +31,7 @@ class SaleRequest extends FormRequest
             'desconto' => 'nullable|numeric|min:0',
             'total' => 'nullable|numeric|min:0',
             'pagamento' => 'required|array',
-            'pagamento.forma' => 'required|string|in:cash,card,PIX',
+            'pagamento.forma' => 'required|string|in:cash,card,pix',
             'pagamento.valorRecebido' => 'required|numeric',
             'pagamento.troco' => 'required|numeric',
             'id_cashier' => 'required|integer|exists:cashiers,id',
