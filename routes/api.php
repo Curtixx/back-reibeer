@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\CashierController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ComboController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\EmployeesController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
@@ -34,6 +35,8 @@ Route::get('/categories/{category}', [CategoryController::class, 'show']);
 
 // Rotas protegidas
 Route::middleware('auth:sanctum')->group(function (): void {
+    Route::get('/dashboard', [DashboardController::class, 'index']);
+
     // Gestão de produtos
     Route::post('/products', [ProductController::class, 'store']);
     Route::put('/products/{product}', [ProductController::class, 'update']);
