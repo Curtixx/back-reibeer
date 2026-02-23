@@ -10,7 +10,7 @@ use App\Http\Resources\StockResource;
 use App\Models\Stock;
 use App\Services\StockService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class StockController extends Controller
 {
@@ -18,10 +18,24 @@ class StockController extends Controller
         protected StockService $stockService
     ) {}
 
+    /**
+     * Clear all stocks cache.
+     */
+    private function clearStocksCache(): void
+    {
+        Cache::flush();
+    }
+
     public function index(): JsonResponse
     {
         try {
-            $stocks = Stock::with('product')->get();
+            $cacheKey = 'stocks_page:'.request()->page.':per_page:'.request()->per_page;
+
+            $stocks = Cache::remember($cacheKey, 600, function () {
+                return Stock::select(['id', 'product_id', 'quantity', 'created_at', 'updated_at'])
+                    ->with(['product:id,name'])
+                    ->simplePaginate(request()->per_page);
+            });
 
             return response()->json(StockResource::collection($stocks), 200);
         } catch (\Exception $e) {
@@ -38,6 +52,8 @@ class StockController extends Controller
             $stocks = $this->stockService->createOrAddStocks(
                 products: $request->validated('products'),
             );
+
+            $this->clearStocksCache();
 
             return response()->json(StockResource::collection($stocks), 200);
         } catch (\Exception $e) {
@@ -65,6 +81,8 @@ class StockController extends Controller
         try {
             $stock->update($request->validated());
 
+            $this->clearStocksCache();
+
             return response()->json(new StockResource($stock), 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao atualizar estoque!'], 500);
@@ -78,6 +96,8 @@ class StockController extends Controller
     {
         try {
             $stock->delete();
+
+            $this->clearStocksCache();
 
             return response()->json(null, 204);
         } catch (\Exception $e) {
@@ -104,6 +124,8 @@ class StockController extends Controller
                     quantity: data_get($validated, 'quantity'),
                 );
             }
+
+            $this->clearStocksCache();
 
             return response()->json(new StockResource($stock), 200);
         } catch (\Exception $e) {

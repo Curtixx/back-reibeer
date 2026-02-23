@@ -7,19 +7,33 @@ use App\Http\Requests\StoreEmployeeRequest;
 use App\Http\Requests\UpdateEmployeeRequest;
 use App\Http\Resources\EmployeeResource;
 use App\Models\Employee;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class EmployeesController extends Controller
 {
+    /**
+     * Clear all employees cache.
+     */
+    private function clearEmployeesCache(): void
+    {
+        Cache::flush();
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
         try {
-            $employees = Employee::where('is_active', true)->get();
-            return response()->json($employees, 200);
+            $cacheKey = 'employees_page:'.request()->input('page', 1).':per_page:'.request()->input('per_page', 10);
+
+            $employees = Cache::remember($cacheKey, 600, function () {
+                return Employee::where('is_active', true)
+                    ->simplePaginate(request()->input('per_page', 10));
+            });
+
+            return response()->json(EmployeeResource::collection($employees), 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao buscar funcionários!'], 500);
         }
@@ -34,6 +48,8 @@ class EmployeesController extends Controller
             $employee = DB::transaction(function () use ($request) {
                 return Employee::create($request->validated());
             });
+
+            $this->clearEmployeesCache();
 
             return response()->json($employee, 201);
         } catch (\Exception $e) {
@@ -60,6 +76,9 @@ class EmployeesController extends Controller
     {
         try {
             $employee->update($request->validated());
+
+            $this->clearEmployeesCache();
+
             return response()->json(new EmployeeResource($employee), 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao atualizar funcionário!'], 500);
@@ -75,6 +94,8 @@ class EmployeesController extends Controller
             DB::transaction(function () use ($employee) {
                 return $employee->update(['is_active' => false]);
             });
+
+            $this->clearEmployeesCache();
 
             return response()->json(null, 204);
         } catch (\Exception $e) {

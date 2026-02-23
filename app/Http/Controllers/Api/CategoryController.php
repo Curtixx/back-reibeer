@@ -8,16 +8,29 @@ use App\Http\Requests\UpdateCategoryRequest;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use App\Services\CategoryService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class CategoryController extends Controller
 {
     public function __construct(public CategoryService $categoryService) {}
 
+    /**
+     * Clear all categories cache.
+     */
+    private function clearCategoriesCache(): void
+    {
+        Cache::flush();
+    }
+
     public function index()
     {
         try {
-            $categories = $this->categoryService->getAllCategories();
+            $cacheKey = 'categories_page:'.request()->input('page', 1).':per_page:'.request()->input('per_page', 10);
+
+            $categories = Cache::remember($cacheKey, 600, function () {
+                return Category::simplePaginate(request()->input('per_page', 10));
+            });
 
             return response()->json(CategoryResource::collection($categories), 200);
         } catch (\Exception $e) {
@@ -34,6 +47,8 @@ class CategoryController extends Controller
             $category = DB::transaction(function () use ($request) {
                 return $this->categoryService->createCategory($request->validated());
             });
+
+            $this->clearCategoriesCache();
 
             return response()->json(new CategoryResource($category), 201);
         } catch (\Exception $e) {
@@ -69,6 +84,8 @@ class CategoryController extends Controller
                 return $this->categoryService->updateCategory($category, $request->validated());
             });
 
+            $this->clearCategoriesCache();
+
             return response()->json(new CategoryResource($updatedCategory), 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao atualizar categoria!'], 500);
@@ -84,6 +101,8 @@ class CategoryController extends Controller
             DB::transaction(function () use ($category) {
                 return $this->categoryService->deleteCategory($category);
             });
+
+            $this->clearCategoriesCache();
 
             return response()->json(null, 204);
         } catch (\Exception $e) {

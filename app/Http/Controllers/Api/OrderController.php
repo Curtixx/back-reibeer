@@ -15,6 +15,7 @@ use App\Http\Requests\UpdateOrderRequest;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Services\OrderService;
+use Illuminate\Support\Facades\Cache;
 
 class OrderController extends Controller
 {
@@ -23,32 +24,47 @@ class OrderController extends Controller
     ) {}
 
     /**
+     * Clear all orders cache.
+     */
+    private function clearOrdersCache(): void
+    {
+        Cache::flush();
+    }
+
+    /**
      * Display a listing of the resource.
      */
     public function index(IndexOrderRequest $request)
     {
         try {
-            $query = Order::query()->where('is_active', true)->with('orderProducts.product');
+            $page = $request->input('page', 1);
+            $perPage = $request->input('per_page', 10);
+            $filters = $request->only(['number', 'responsible_name', 'status', 'product_id']);
+            $cacheKey = 'orders_page:'.$page.':per_page:'.$perPage.':filters:'.md5(serialize($filters));
 
-            if ($request->filled('number')) {
-                $query->where('number', 'like', '%'.$request->input('number').'%');
-            }
+            $orders = Cache::remember($cacheKey, 3600, function () use ($request, $perPage) {
+                $query = Order::query()->where('is_active', true)->with('orderProducts.product');
 
-            if ($request->filled('responsible_name')) {
-                $query->where('responsible_name', 'like', '%'.$request->input('responsible_name').'%');
-            }
+                if ($request->filled('number')) {
+                    $query->where('number', 'like', '%'.$request->input('number').'%');
+                }
 
-            if ($request->filled('status')) {
-                $query->where('status', $request->input('status'));
-            }
+                if ($request->filled('responsible_name')) {
+                    $query->where('responsible_name', 'like', '%'.$request->input('responsible_name').'%');
+                }
 
-            if ($request->filled('product_id')) {
-                $query->whereHas('orderProducts', function ($q) use ($request) {
-                    $q->where('product_id', $request->input('product_id'));
-                });
-            }
+                if ($request->filled('status')) {
+                    $query->where('status', $request->input('status'));
+                }
 
-            $orders = $query->get();
+                if ($request->filled('product_id')) {
+                    $query->whereHas('orderProducts', function ($q) use ($request) {
+                        $q->where('product_id', $request->input('product_id'));
+                    });
+                }
+
+                return $query->simplePaginate($perPage);
+            });
 
             return response()->json(OrderResource::collection($orders));
         } catch (\Exception $e) {
@@ -64,6 +80,8 @@ class OrderController extends Controller
         try {
             $orderDTO = StoreOrderDTO::fromArray($request->validated());
             $order = $this->orderService->createOrder($orderDTO);
+
+            $this->clearOrdersCache();
 
             return response()->json(new OrderResource($order), 201);
         } catch (\Exception $e) {
@@ -94,6 +112,8 @@ class OrderController extends Controller
             $orderDTO = UpdateOrderDTO::fromArray($request->validated());
             $order = $this->orderService->updateOrder($order, $orderDTO);
 
+            $this->clearOrdersCache();
+
             return response()->json(new OrderResource($order));
         } catch (\Exception $e) {
             return response()->json(['error' => 'Falha ao atualizar comanda', 'message' => $e->getMessage()], 500);
@@ -107,6 +127,8 @@ class OrderController extends Controller
     {
         try {
             $this->orderService->deleteOrder($order);
+
+            $this->clearOrdersCache();
 
             return response()->json(['message' => 'Comanda excluída com sucesso'], 200);
         } catch (\Exception $e) {
@@ -123,6 +145,8 @@ class OrderController extends Controller
             $productsDTO = AddProductsToOrderDTO::fromArray($request->validated());
             $order = $this->orderService->addProductsToOrder($order, $productsDTO);
 
+            $this->clearOrdersCache();
+
             return response()->json(new OrderResource($order));
         } catch (\Exception $e) {
             return response()->json(['error' => 'Falha ao adicionar produtos à comanda', 'message' => $e->getMessage()], 500);
@@ -137,6 +161,8 @@ class OrderController extends Controller
         try {
             $productsDTO = RemoveProductsFromOrderDTO::fromArray($request->validated());
             $order = $this->orderService->removeProductsFromOrder($order, $productsDTO);
+
+            $this->clearOrdersCache();
 
             return response()->json(new OrderResource($order));
         } catch (\Exception $e) {

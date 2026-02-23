@@ -7,19 +7,34 @@ use App\Http\Requests\StoreComboRequest;
 use App\Http\Requests\UpdateComboRequest;
 use App\Http\Resources\ComboResource;
 use App\Models\Combo;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class ComboController extends Controller
 {
+    /**
+     * Clear all combos cache.
+     */
+    private function clearCombosCache(): void
+    {
+        Cache::flush();
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
         try {
-            $combos = Combo::where('is_active', true)->with('comboProducts.product')->get();
-            return response()->json($combos);
+            $cacheKey = 'combos_page:'.request()->input('page', 1).':per_page:'.request()->input('per_page', 10);
+
+            $combos = Cache::remember($cacheKey, 600, function () {
+                return Combo::where('is_active', true)
+                    ->with('comboProducts.product')
+                    ->simplePaginate(request()->input('per_page', 10));
+            });
+
+            return response()->json(ComboResource::collection($combos));
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to fetch combos', 'message' => $e->getMessage()], 500);
         }
@@ -48,6 +63,8 @@ class ComboController extends Controller
                 return $combo;
             });
 
+            $this->clearCombosCache();
+
             return response()->json(new ComboResource($combo), 201);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to create combo', 'message' => $e->getMessage()], 500);
@@ -61,6 +78,7 @@ class ComboController extends Controller
     {
         try {
             $combo->load('comboProducts.product');
+
             return response()->json(new ComboResource($combo));
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to fetch combo', 'message' => $e->getMessage()], 500);
@@ -91,6 +109,8 @@ class ComboController extends Controller
                 return $combo;
             });
 
+            $this->clearCombosCache();
+
             return response()->json(new ComboResource($combo));
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to update combo', 'message' => $e->getMessage()], 500);
@@ -105,6 +125,8 @@ class ComboController extends Controller
         try {
             $combo->comboProducts()->delete();
             $combo->delete();
+
+            $this->clearCombosCache();
 
             return response()->json(['message' => 'Combo deleted successfully']);
         } catch (\Exception $e) {
