@@ -28,12 +28,14 @@ class ComboController extends Controller
     public function index(): AnonymousResourceCollection|JsonResponse
     {
         try {
-            $cacheKey = 'combos_page:'.request()->input('page', 1).':per_page:'.request()->input('per_page', 10);
+            $page = request()->input('page', 1);
+            $perPage = request()->input('per_page', 15);
+            $cacheKey = 'combos_page:' . $page . ':per_page:' . $perPage;
 
-            $combos = Cache::remember($cacheKey, 600, function () {
+            $combos = Cache::remember($cacheKey, 600, function () use ($page, $perPage) {
                 return Combo::where('is_active', true)
                     ->with('comboProducts.product')
-                    ->paginate(request()->input('per_page', 10));
+                    ->paginate($perPage);
             });
 
             return ComboResource::collection($combos);

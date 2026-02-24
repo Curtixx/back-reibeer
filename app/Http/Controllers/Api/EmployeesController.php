@@ -28,11 +28,12 @@ class EmployeesController extends Controller
     public function index(): AnonymousResourceCollection|JsonResponse
     {
         try {
-            $cacheKey = 'employees_page:'.request()->input('page', 1).':per_page:'.request()->input('per_page', 10);
+            $page = request()->input('page', 1);
+            $perPage = request()->input('per_page', 15);
+            $cacheKey = 'employees_page:' . $page . ':per_page:' . $perPage;
 
-            $employees = Cache::remember($cacheKey, 600, function () {
-                return Employee::where('is_active', true)
-                    ->paginate(request()->input('per_page', 10));
+            $employees = Cache::remember($cacheKey, 600, function () use ($page, $perPage) {
+                return Employee::where('is_active', true)->paginate($perPage);
             });
 
             return EmployeeResource::collection($employees);

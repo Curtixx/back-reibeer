@@ -30,12 +30,14 @@ class StockController extends Controller
     public function index(): AnonymousResourceCollection|JsonResponse
     {
         try {
-            $cacheKey = 'stocks_page:'.request()->page.':per_page:'.request()->per_page;
+            $page = request()->input('page', 1);
+            $perPage = request()->input('per_page', 15);
+            $cacheKey = 'stocks_page:' . $page . ':per_page:' . $perPage;
 
-            $stocks = Cache::remember($cacheKey, 600, function () {
+            $stocks = Cache::remember($cacheKey, 600, function () use ($page, $perPage) {
                 return Stock::select(['id', 'product_id', 'quantity', 'created_at', 'updated_at'])
                     ->with(['product:id,name'])
-                    ->paginate(request()->per_page);
+                    ->paginate($perPage);
             });
 
             return StockResource::collection($stocks);
