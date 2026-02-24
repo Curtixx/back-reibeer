@@ -7,6 +7,8 @@ use App\Http\Requests\StoreComboRequest;
 use App\Http\Requests\UpdateComboRequest;
 use App\Http\Resources\ComboResource;
 use App\Models\Combo;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -23,7 +25,7 @@ class ComboController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): AnonymousResourceCollection|JsonResponse
     {
         try {
             $cacheKey = 'combos_page:'.request()->input('page', 1).':per_page:'.request()->input('per_page', 10);
@@ -31,10 +33,10 @@ class ComboController extends Controller
             $combos = Cache::remember($cacheKey, 600, function () {
                 return Combo::where('is_active', true)
                     ->with('comboProducts.product')
-                    ->simplePaginate(request()->input('per_page', 10));
+                    ->paginate(request()->input('per_page', 10));
             });
 
-            return response()->json(ComboResource::collection($combos));
+            return ComboResource::collection($combos);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to fetch combos', 'message' => $e->getMessage()], 500);
         }

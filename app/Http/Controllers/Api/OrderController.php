@@ -15,6 +15,8 @@ use App\Http\Requests\UpdateOrderRequest;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Services\OrderService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Cache;
 
 class OrderController extends Controller
@@ -34,7 +36,7 @@ class OrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(IndexOrderRequest $request)
+    public function index(IndexOrderRequest $request): AnonymousResourceCollection|JsonResponse
     {
         try {
             $page = $request->input('page', 1);
@@ -63,10 +65,10 @@ class OrderController extends Controller
                     });
                 }
 
-                return $query->simplePaginate($perPage);
+                return $query->paginate($perPage);
             });
 
-            return response()->json(OrderResource::collection($orders));
+            return OrderResource::collection($orders);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Falha ao buscar comandas', 'message' => $e->getMessage()], 500);
         }

@@ -8,6 +8,8 @@ use App\Http\Requests\UpdateCategoryRequest;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use App\Services\CategoryService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -23,16 +25,16 @@ class CategoryController extends Controller
         Cache::flush();
     }
 
-    public function index()
+    public function index(): AnonymousResourceCollection|JsonResponse
     {
         try {
             $cacheKey = 'categories_page:'.request()->input('page', 1).':per_page:'.request()->input('per_page', 10);
 
             $categories = Cache::remember($cacheKey, 600, function () {
-                return Category::simplePaginate(request()->input('per_page', 10));
+                return Category::paginate(request()->input('per_page', 10));
             });
 
-            return response()->json(CategoryResource::collection($categories), 200);
+            return CategoryResource::collection($categories);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao buscar categorias!'], 500);
         }

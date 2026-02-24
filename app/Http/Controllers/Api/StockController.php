@@ -10,6 +10,7 @@ use App\Http\Resources\StockResource;
 use App\Models\Stock;
 use App\Services\StockService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Cache;
 
 class StockController extends Controller
@@ -26,7 +27,7 @@ class StockController extends Controller
         Cache::flush();
     }
 
-    public function index(): JsonResponse
+    public function index(): AnonymousResourceCollection|JsonResponse
     {
         try {
             $cacheKey = 'stocks_page:'.request()->page.':per_page:'.request()->per_page;
@@ -34,10 +35,10 @@ class StockController extends Controller
             $stocks = Cache::remember($cacheKey, 600, function () {
                 return Stock::select(['id', 'product_id', 'quantity', 'created_at', 'updated_at'])
                     ->with(['product:id,name'])
-                    ->simplePaginate(request()->per_page);
+                    ->paginate(request()->per_page);
             });
 
-            return response()->json(StockResource::collection($stocks), 200);
+            return StockResource::collection($stocks);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao buscar estoque!'], 500);
         }

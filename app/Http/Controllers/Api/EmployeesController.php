@@ -7,6 +7,8 @@ use App\Http\Requests\StoreEmployeeRequest;
 use App\Http\Requests\UpdateEmployeeRequest;
 use App\Http\Resources\EmployeeResource;
 use App\Models\Employee;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -23,17 +25,17 @@ class EmployeesController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): AnonymousResourceCollection|JsonResponse
     {
         try {
             $cacheKey = 'employees_page:'.request()->input('page', 1).':per_page:'.request()->input('per_page', 10);
 
             $employees = Cache::remember($cacheKey, 600, function () {
                 return Employee::where('is_active', true)
-                    ->simplePaginate(request()->input('per_page', 10));
+                    ->paginate(request()->input('per_page', 10));
             });
 
-            return response()->json(EmployeeResource::collection($employees), 200);
+            return EmployeeResource::collection($employees);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao buscar funcionários!'], 500);
         }
