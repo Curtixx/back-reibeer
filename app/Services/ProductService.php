@@ -4,14 +4,19 @@ namespace App\Services;
 
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
 
 class ProductService
 {
-    public function getAllProducts(): Collection
+    public function getAllProducts(int $page, int $perPage): LengthAwarePaginator
     {
-        return Product::where('is_active', true)
-            ->with('categories')
-            ->get();
+        $cacheKey = 'products_page:' . $page . ':per_page:' . $perPage;
+        return Cache::remember($cacheKey, 600, function () use ($page, $perPage) {
+            return Product::where('is_active', true)
+                ->with('categories')
+                ->paginate($perPage);
+        });
     }
 
     public function getProductById(int $id): ?Product

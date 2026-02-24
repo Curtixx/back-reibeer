@@ -28,11 +28,9 @@ class CategoryController extends Controller
     public function index(): AnonymousResourceCollection|JsonResponse
     {
         try {
-            $cacheKey = 'categories_page:'.request()->input('page', 1).':per_page:'.request()->input('per_page', 10);
-
-            $categories = Cache::remember($cacheKey, 600, function () {
-                return Category::paginate(request()->input('per_page', 10));
-            });
+            $page = request()->input('page', 1);
+            $perPage = request()->input('per_page', 15);
+            $categories = $this->categoryService->getAllCategories($page, $perPage);
 
             return CategoryResource::collection($categories);
         } catch (\Exception $e) {

@@ -17,9 +17,11 @@ class ProductController extends Controller
     public function index()
     {
         try {
-            $produtos = $this->productService->getAllProducts();
+            $page = request()->input('page', 1);
+            $perPage = request()->input('per_page', 15);
+            $produtos = $this->productService->getAllProducts($page, $perPage);
 
-            return response()->json(ProductResource::collection($produtos), 200);
+            return ProductResource::collection($produtos);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao buscar produtos!'], 500);
         }
