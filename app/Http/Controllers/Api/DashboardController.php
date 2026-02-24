@@ -22,7 +22,7 @@ class DashboardController extends Controller
             $perPage = $request->query('per_page', 15);
             $cacheKey = 'dashboard_data:period:' . $period . ':per_page:' . $perPage;
 
-            $dashboardData = Cache::remember($cacheKey, 600, function () use ($period, $perPage) {
+            $dashboardData = Cache::remember($cacheKey, 3600, function () use ($period, $perPage) {
                 return [
                     'profit' => $this->dashboardService->getProfitData(),
                     'expenses' => $this->dashboardService->getExpensesData(),
