@@ -160,6 +160,7 @@ class DashboardService
     {
         return Stock::where('quantity', '<', 10)
             ->with('product')
+            ->take(5)
             ->get()
             ->map(function ($stock) {
                 return [
