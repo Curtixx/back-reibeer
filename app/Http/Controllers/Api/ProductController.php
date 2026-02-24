@@ -8,11 +8,17 @@ use App\Http\Requests\UpdateProdutcRequest;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Services\ProductService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
     public function __construct(public ProductService $productService) {}
+
+    private function clearProductsCache(): void
+    {
+        Cache::tags(['products'])->flush();
+    }
 
     public function index()
     {
@@ -36,6 +42,8 @@ class ProductController extends Controller
             $product = DB::transaction(function () use ($request) {
                 return $this->productService->createProduct($request->validated());
             });
+
+            $this->clearProductsCache();
 
             return response()->json(new ProductResource($product), 201);
         } catch (\Exception $e) {
@@ -71,6 +79,8 @@ class ProductController extends Controller
                 return $this->productService->updateProduct($product, $request->validated());
             });
 
+            $this->clearProductsCache();
+
             return response()->json(new ProductResource($updatedProduct), 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao atualizar produto!'], 500);
@@ -86,6 +96,8 @@ class ProductController extends Controller
             DB::transaction(function () use ($product) {
                 return $this->productService->deleteProduct($product);
             });
+
+            $this->clearProductsCache();
 
             return response()->json(null, 204);
         } catch (\Exception $e) {

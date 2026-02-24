@@ -19,7 +19,7 @@ class ComboController extends Controller
      */
     private function clearCombosCache(): void
     {
-        Cache::flush();
+        Cache::tags(['combos'])->flush();
     }
 
     /**
@@ -32,7 +32,7 @@ class ComboController extends Controller
             $perPage = request()->input('per_page', 15);
             $cacheKey = 'combos_page:' . $page . ':per_page:' . $perPage;
 
-            $combos = Cache::remember($cacheKey, 600, function () use ($page, $perPage) {
+            $combos = Cache::tags(['combos'])->remember($cacheKey, 600, function () use ($page, $perPage) {
                 return Combo::where('is_active', true)
                     ->with('comboProducts.product')
                     ->paginate($perPage);

@@ -12,7 +12,7 @@ class ProductService
     public function getAllProducts(int $page, int $perPage): LengthAwarePaginator
     {
         $cacheKey = 'products_page:' . $page . ':per_page:' . $perPage;
-        return Cache::remember($cacheKey, 600, function () use ($page, $perPage) {
+        return Cache::tags(['products'])->remember($cacheKey, 600, function () use ($page, $perPage) {
             return Product::where('is_active', true)
                 ->with('categories')
                 ->paginate($perPage);

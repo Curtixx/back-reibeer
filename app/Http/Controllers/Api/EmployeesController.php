@@ -19,7 +19,7 @@ class EmployeesController extends Controller
      */
     private function clearEmployeesCache(): void
     {
-        Cache::flush();
+        Cache::tags(['employees'])->flush();
     }
 
     /**
@@ -32,7 +32,7 @@ class EmployeesController extends Controller
             $perPage = request()->input('per_page', 15);
             $cacheKey = 'employees_page:' . $page . ':per_page:' . $perPage;
 
-            $employees = Cache::remember($cacheKey, 600, function () use ($page, $perPage) {
+            $employees = Cache::tags(['employees'])->remember($cacheKey, 600, function () use ($page, $perPage) {
                 return Employee::where('is_active', true)->paginate($perPage);
             });
 

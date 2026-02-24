@@ -22,7 +22,7 @@ class CategoryController extends Controller
      */
     private function clearCategoriesCache(): void
     {
-        Cache::flush();
+        Cache::tags(['categories'])->flush();
     }
 
     public function index(): AnonymousResourceCollection|JsonResponse

@@ -24,7 +24,7 @@ class StockController extends Controller
      */
     private function clearStocksCache(): void
     {
-        Cache::flush();
+        Cache::tags(['stocks'])->flush();
     }
 
     public function index(): AnonymousResourceCollection|JsonResponse
@@ -34,7 +34,7 @@ class StockController extends Controller
             $perPage = request()->input('per_page', 15);
             $cacheKey = 'stocks_page:' . $page . ':per_page:' . $perPage;
 
-            $stocks = Cache::remember($cacheKey, 600, function () use ($page, $perPage) {
+            $stocks = Cache::tags(['stocks'])->remember($cacheKey, 600, function () use ($page, $perPage) {
                 return Stock::select(['id', 'product_id', 'quantity', 'created_at', 'updated_at'])
                     ->with(['product:id,name'])
                     ->paginate($perPage);

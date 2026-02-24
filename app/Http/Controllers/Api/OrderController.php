@@ -30,7 +30,7 @@ class OrderController extends Controller
      */
     private function clearOrdersCache(): void
     {
-        Cache::flush();
+        Cache::tags(['orders'])->flush();
     }
 
     /**
@@ -44,7 +44,7 @@ class OrderController extends Controller
             $filters = $request->only(['number', 'responsible_name', 'status', 'product_id']);
             $cacheKey = 'orders_page:' . $page . ':per_page:' . $perPage . ':filters:' . md5(serialize($filters));
 
-            $orders = Cache::remember($cacheKey, 600, function () use ($request, $page, $perPage) {
+            $orders = Cache::tags(['orders'])->remember($cacheKey, 600, function () use ($request, $page, $perPage) {
                 $query = Order::query()->where('is_active', true)->with('orderProducts.product');
 
                 if ($request->filled('number')) {

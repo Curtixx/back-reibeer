@@ -12,7 +12,7 @@ class CategoryService
     public function getAllCategories(int $page, int $perPage): LengthAwarePaginator
     {
         $cacheKey = 'categories_page:' . $page . ':per_page:' . $perPage;
-        return Cache::remember($cacheKey, 600, function () use ($page, $perPage) {
+        return Cache::tags(['categories'])->remember($cacheKey, 600, function () use ($page, $perPage) {
             return Category::where('is_active', true)->paginate($perPage);
         });
     }
