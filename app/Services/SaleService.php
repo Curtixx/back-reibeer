@@ -28,7 +28,7 @@ class SaleService
         $sale->items()->create([
             'product_id' => $product->id,
             'quantity' => $itemsSaleDTO->quantity,
-            'unit_price' => $sale->payment_method === 'pix' ? $product->pix_price : $product->sale_price,
+            'unit_price' => $sale->payment_method === 'pix' ? ($product->pix_price ?? $product->sale_price) : $product->sale_price,
         ]);
     }
 }
