@@ -48,7 +48,6 @@ class ProductController extends Controller
 
             return response()->json(new ProductResource($product), 201);
         } catch (\Exception $e) {
-            dd($e);
             return response()->json(['error' => 'Erro ao criar produto!'], 500);
         }
     }
