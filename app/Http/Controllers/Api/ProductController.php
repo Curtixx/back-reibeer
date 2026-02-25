@@ -25,7 +25,8 @@ class ProductController extends Controller
         try {
             $page = request()->input('page', 1);
             $perPage = request()->input('per_page', 15);
-            $produtos = $this->productService->getAllProducts($page, $perPage);
+            $barCode = request()->input('bar_code');
+            $produtos = $this->productService->getAllProducts($page, $perPage, $barCode);
 
             return ProductResource::collection($produtos);
         } catch (\Exception $e) {

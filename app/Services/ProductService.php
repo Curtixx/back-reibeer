@@ -9,13 +9,17 @@ use Illuminate\Support\Facades\Cache;
 
 class ProductService
 {
-    public function getAllProducts(int $page, int $perPage): LengthAwarePaginator
+    public function getAllProducts(int $page, int $perPage, ?string $barCode = null): LengthAwarePaginator
     {
-        $cacheKey = 'products_page:' . $page . ':per_page:' . $perPage;
-        return Cache::tags(['products'])->remember($cacheKey, 600, function () use ($page, $perPage) {
-            return Product::where('is_active', true)
-                ->with('categories')
-                ->paginate($perPage);
+        $cacheKey = 'products_page:' . $page . ':per_page:' . $perPage . ':barcode:' . ($barCode ?? 'none');
+        return Cache::tags(['products'])->remember($cacheKey, 600, function () use ($page, $perPage, $barCode) {
+            $query = Product::where('is_active', true)->with('categories');
+
+            if ($barCode) {
+                $query->where('bar_code', $barCode);
+            }
+
+            return $query->paginate($perPage);
         });
     }
 
