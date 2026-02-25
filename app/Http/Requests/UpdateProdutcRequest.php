@@ -31,6 +31,7 @@ class UpdateProdutcRequest extends FormRequest
             'is_active' => 'sometimes|boolean',
             'categories' => 'nullable|array',
             'categories.*' => 'integer|exists:categories,id',
+            'bar_code' => 'nullable|string|max:255',
         ];
     }
 }

@@ -38,6 +38,7 @@ class ProductSeeder extends Seeder
                 'is_active' => $i % 10 !== 0,
                 'created_at' => $now,
                 'updated_at' => $now,
+                'bar_code' => $i % 2 === 0 ? '1234567890123' : null,
             ];
 
             if (count($batch) === self::CHUNK) {

@@ -36,6 +36,7 @@ class ProductService
             'cost_price' => $data['cost_price'],
             'pix_price' => $data['pix_price'] ?? null,
             'stock_notice' => $data['stock_notice'],
+            'bar_code' => $data['bar_code'] ?? null,
         ]);
 
         if (isset($data['categories']) && is_array($data['categories'])) {
@@ -55,6 +56,7 @@ class ProductService
             'pix_price' => $data['pix_price'] ?? $product->pix_price,
             'stock_notice' => $data['stock_notice'] ?? $product->stock_notice,
             'is_active' => $data['is_active'] ?? $product->is_active,
+            'bar_code' => $data['bar_code'] ?? $product->bar_code,
         ]);
 
         if (isset($data['categories']) && is_array($data['categories'])) {

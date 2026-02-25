@@ -30,6 +30,7 @@ class StoreProductRequest extends FormRequest
             'stock_notice' => 'required|integer|min:0',
             'categories' => 'nullable|array',
             'categories.*' => 'integer|exists:categories,id',
+            'bar_code' => 'nullable|string|max:255',
         ];
     }
 }

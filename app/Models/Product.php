@@ -15,6 +15,7 @@ class Product extends Model
         'pix_price',
         'stock_notice',
         'is_active',
+        'bar_code',
     ];
 
     public function categories(): BelongsToMany
