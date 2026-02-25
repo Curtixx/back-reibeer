@@ -35,48 +35,66 @@ Route::get('/categories/{category}', [CategoryController::class, 'show']);
 
 // Rotas protegidas
 Route::middleware('auth:sanctum')->group(function (): void {
-    Route::get('/dashboard', [DashboardController::class, 'index']);
+    Route::prefix('dashboard')->group(function (): void {
+        Route::get('/', [DashboardController::class, 'index']);
+    });
 
     // Gestão de produtos
-    Route::post('/products', [ProductController::class, 'store']);
-    Route::put('/products/{product}', [ProductController::class, 'update']);
-    Route::delete('/products/{product}', [ProductController::class, 'destroy']);
+    Route::prefix('products')->group(function (): void {
+        Route::post('/', [ProductController::class, 'store']);
+        Route::put('/{product}', [ProductController::class, 'update']);
+        Route::delete('/{product}', [ProductController::class, 'destroy']);
+    });
 
     // Gestão de funcionários
-    Route::post('/employees', [EmployeesController::class, 'store']);
-    Route::put('/employees/{employee}', [EmployeesController::class, 'update']);
-    Route::delete('/employees/{employee}', [EmployeesController::class, 'destroy']);
+    Route::prefix('employees')->group(function (): void {
+        Route::post('/', [EmployeesController::class, 'store']);
+        Route::put('/{employee}', [EmployeesController::class, 'update']);
+        Route::delete('/{employee}', [EmployeesController::class, 'destroy']);
+    });
 
     // Gestão de combos
-    Route::post('/combos', [ComboController::class, 'store']);
-    Route::put('/combos/{combo}', [ComboController::class, 'update']);
-    Route::delete('/combos/{combo}', [ComboController::class, 'destroy']);
+    Route::prefix('combos')->group(function (): void {
+        Route::post('/', [ComboController::class, 'store']);
+        Route::put('/{combo}', [ComboController::class, 'update']);
+        Route::delete('/{combo}', [ComboController::class, 'destroy']);
+    });
 
     // Gestão de categorias
-    Route::post('/categories', [CategoryController::class, 'store']);
-    Route::put('/categories/{category}', [CategoryController::class, 'update']);
-    Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
+    Route::prefix('categories')->group(function (): void {
+        Route::post('/', [CategoryController::class, 'store']);
+        Route::put('/{category}', [CategoryController::class, 'update']);
+        Route::delete('/{category}', [CategoryController::class, 'destroy']);
+    });
 
     // Gestão de comandas
-    Route::post('/orders', [OrderController::class, 'store']);
-    Route::put('/orders/{order}', [OrderController::class, 'update']);
-    Route::delete('/orders/{order}', [OrderController::class, 'destroy']);
-    Route::post('/orders/{order}/add-products', [OrderController::class, 'addProducts']);
-    Route::post('/orders/{order}/remove-products', [OrderController::class, 'removeProducts']);
+    Route::prefix('orders')->group(function (): void {
+        Route::post('/', [OrderController::class, 'store']);
+        Route::put('/{order}', [OrderController::class, 'update']);
+        Route::delete('/{order}', [OrderController::class, 'destroy']);
+        Route::post('/{order}/add-products', [OrderController::class, 'addProducts']);
+        Route::post('/{order}/remove-products', [OrderController::class, 'removeProducts']);
+    });
 
     // Gestão de caixa
-    Route::get('/cashier/opened', [CashierController::class, 'cashierOpened']);
-    Route::post('/cashier/open', [CashierController::class, 'openCashier']);
-    Route::post('/cashier/close', [CashierController::class, 'closeCashier']);
+    Route::prefix('cashier')->group(function (): void {
+        Route::get('/opened', [CashierController::class, 'cashierOpened']);
+        Route::post('/open', [CashierController::class, 'openCashier']);
+        Route::post('/close', [CashierController::class, 'closeCashier']);
+    });
 
     // Estoque
-    Route::get('/stocks', [StockController::class, 'index']);
-    Route::get('/stocks/{stock}', [StockController::class, 'show']);
-    Route::post('/stocks', [StockController::class, 'store']);
-    Route::put('/stocks/{stock}', [StockController::class, 'update']);
-    Route::put('/stocks/update-quantity/{stock}', [StockController::class, 'updateQuantity']);
-    Route::delete('/stocks/{stock}', [StockController::class, 'destroy']);
+    Route::prefix('stocks')->group(function (): void {
+        Route::get('/', [StockController::class, 'index']);
+        Route::get('/{stock}', [StockController::class, 'show']);
+        Route::post('/', [StockController::class, 'store']);
+        Route::put('/{stock}', [StockController::class, 'update']);
+        Route::put('/update-quantity/{stock}', [StockController::class, 'updateQuantity']);
+        Route::delete('/{stock}', [StockController::class, 'destroy']);
+    });
 
     // Vendas
-    Route::post('/sales', [SaleController::class, 'store']);
+    Route::prefix('sales')->group(function (): void {
+        Route::post('/', [SaleController::class, 'store']);
+    });
 });
