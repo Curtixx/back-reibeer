@@ -7,6 +7,7 @@ use App\Http\Requests\StoreEmployeeRequest;
 use App\Http\Requests\UpdateEmployeeRequest;
 use App\Http\Resources\EmployeeResource;
 use App\Models\Employee;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Cache;
@@ -49,7 +50,14 @@ class EmployeesController extends Controller
     {
         try {
             $employee = DB::transaction(function () use ($request) {
-                return Employee::create($request->validated());
+                $funcionario = Employee::create($request->only(['name', 'email']));
+                User::create([
+                    'name' => $funcionario->name,
+                    'email' => $funcionario->email,
+                    'password' => $request->password,
+                ]);
+
+                return $funcionario;
             });
 
             $this->clearEmployeesCache();
@@ -78,7 +86,8 @@ class EmployeesController extends Controller
     public function update(UpdateEmployeeRequest $request, Employee $employee)
     {
         try {
-            $employee->update($request->validated());
+            $employee->update($request->only(['name', 'email', 'is_active']));
+            User::where('email', $employee->email)->update($request->only(['name', 'email', 'password']));
 
             $this->clearEmployeesCache();
 

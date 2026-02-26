@@ -24,6 +24,7 @@ class UpdateEmployeeRequest extends FormRequest
         return [
             'name' => 'sometimes|required|string|max:255',
             'email' => 'sometimes|required|email',
+            'password' => 'sometimes|required|string|min:8',
             'is_active' => 'sometimes|boolean',
         ];
     }

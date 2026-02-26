@@ -24,6 +24,7 @@ class StoreEmployeeRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:employees,email',
+            'password' => 'required|string|min:8',
         ];
     }
 }
