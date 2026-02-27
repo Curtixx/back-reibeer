@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\IndexComboRequest;
 use App\Http\Requests\StoreComboRequest;
 use App\Http\Requests\UpdateComboRequest;
 use App\Http\Resources\ComboResource;
@@ -25,22 +26,35 @@ class ComboController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): AnonymousResourceCollection|JsonResponse
+    public function index(IndexComboRequest $request): AnonymousResourceCollection|JsonResponse
     {
         try {
-            $page = request()->input('page', 1);
-            $perPage = request()->input('per_page', 15);
-            $cacheKey = 'combos_page:' . $page . ':per_page:' . $perPage;
+            $page = $request->input('page', 1);
+            $perPage = $request->input('per_page', 15);
+            $ids = $request->input('ids', []);
+            $productIds = $request->input('product_ids', []);
+            $cacheKey = 'combos_page:'.$page.':per_page:'.$perPage.':filters:'.md5(serialize([$ids, $productIds]));
 
-            $combos = Cache::tags(['combos'])->remember($cacheKey, 600, function () use ($page, $perPage) {
-                return Combo::where('is_active', true)
-                    ->with('comboProducts.product')
-                    ->paginate($perPage);
+            $combos = Cache::tags(['combos'])->remember($cacheKey, 600, function () use ($perPage, $ids, $productIds) {
+                $query = Combo::where('is_active', true)
+                    ->with('comboProducts.product');
+
+                if (! empty($ids)) {
+                    $query->whereIn('id', $ids);
+                }
+
+                if (! empty($productIds)) {
+                    $query->whereHas('products', function ($q) use ($productIds) {
+                        $q->whereIn('products.id', $productIds);
+                    });
+                }
+
+                return $query->paginate($perPage);
             });
 
             return ComboResource::collection($combos);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to fetch combos', 'message' => $e->getMessage()], 500);
+            return response()->json(['error' => 'Erro ao buscar combos', 'message' => $e->getMessage()], 500);
         }
     }
 

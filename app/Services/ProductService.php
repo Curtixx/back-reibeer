@@ -3,20 +3,24 @@
 namespace App\Services;
 
 use App\Models\Product;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 
 class ProductService
 {
-    public function getAllProducts(int $page, int $perPage, ?string $barCode = null): LengthAwarePaginator
+    public function getAllProducts(int $page, int $perPage, ?string $barCode = null, array $ids = []): LengthAwarePaginator
     {
-        $cacheKey = 'products_page:' . $page . ':per_page:' . $perPage . ':barcode:' . ($barCode ?? 'none');
-        return Cache::tags(['products'])->remember($cacheKey, 600, function () use ($page, $perPage, $barCode) {
+        $cacheKey = 'products_page:'.$page.':per_page:'.$perPage.':barcode:'.($barCode ?? 'none').':ids:'.md5(serialize($ids));
+
+        return Cache::tags(['products'])->remember($cacheKey, 600, function () use ($perPage, $barCode, $ids) {
             $query = Product::where('is_active', true)->with('categories');
 
             if ($barCode) {
                 $query->where('bar_code', $barCode);
+            }
+
+            if (! empty($ids)) {
+                $query->whereIn('id', $ids);
             }
 
             return $query->paginate($perPage);

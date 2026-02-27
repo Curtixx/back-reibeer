@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\IndexProductRequest;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProdutcRequest;
 use App\Http\Resources\ProductResource;
@@ -20,13 +21,14 @@ class ProductController extends Controller
         Cache::tags(['products'])->flush();
     }
 
-    public function index()
+    public function index(IndexProductRequest $request)
     {
         try {
-            $page = request()->input('page', 1);
-            $perPage = request()->input('per_page', 15);
-            $barCode = request()->input('bar_code');
-            $produtos = $this->productService->getAllProducts($page, $perPage, $barCode);
+            $page = $request->input('page', 1);
+            $perPage = $request->input('per_page', 15);
+            $barCode = $request->input('bar_code');
+            $ids = $request->input('ids', []);
+            $produtos = $this->productService->getAllProducts($page, $perPage, $barCode, $ids);
 
             return ProductResource::collection($produtos);
         } catch (\Exception $e) {

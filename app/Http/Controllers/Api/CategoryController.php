@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\IndexCategoryRequest;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
 use App\Http\Resources\CategoryResource;
@@ -25,12 +26,13 @@ class CategoryController extends Controller
         Cache::tags(['categories'])->flush();
     }
 
-    public function index(): AnonymousResourceCollection|JsonResponse
+    public function index(IndexCategoryRequest $request): AnonymousResourceCollection|JsonResponse
     {
         try {
-            $page = request()->input('page', 1);
-            $perPage = request()->input('per_page', 15);
-            $categories = $this->categoryService->getAllCategories($page, $perPage);
+            $page = $request->input('page', 1);
+            $perPage = $request->input('per_page', 15);
+            $ids = $request->input('ids', []);
+            $categories = $this->categoryService->getAllCategories($page, $perPage, $ids);
 
             return CategoryResource::collection($categories);
         } catch (\Exception $e) {

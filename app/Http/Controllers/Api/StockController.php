@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\IndexStockRequest;
 use App\Http\Requests\StoreStockRequest;
 use App\Http\Requests\UpdateStockQuantityRequest;
 use App\Http\Requests\UpdateStockRequest;
@@ -27,17 +28,23 @@ class StockController extends Controller
         Cache::tags(['stocks'])->flush();
     }
 
-    public function index(): AnonymousResourceCollection|JsonResponse
+    public function index(IndexStockRequest $request): AnonymousResourceCollection|JsonResponse
     {
         try {
-            $page = request()->input('page', 1);
-            $perPage = request()->input('per_page', 15);
-            $cacheKey = 'stocks_page:' . $page . ':per_page:' . $perPage;
+            $page = $request->input('page', 1);
+            $perPage = $request->input('per_page', 15);
+            $productIds = $request->input('product_ids', []);
+            $cacheKey = 'stocks_page:'.$page.':per_page:'.$perPage.':filters:'.md5(serialize($productIds));
 
-            $stocks = Cache::tags(['stocks'])->remember($cacheKey, 600, function () use ($page, $perPage) {
-                return Stock::select(['id', 'product_id', 'quantity', 'created_at', 'updated_at'])
-                    ->with(['product:id,name'])
-                    ->paginate($perPage);
+            $stocks = Cache::tags(['stocks'])->remember($cacheKey, 600, function () use ($perPage, $productIds) {
+                $query = Stock::select(['id', 'product_id', 'quantity', 'created_at', 'updated_at'])
+                    ->with(['product:id,name']);
+
+                if (! empty($productIds)) {
+                    $query->whereIn('product_id', $productIds);
+                }
+
+                return $query->paginate($perPage);
             });
 
             return StockResource::collection($stocks);

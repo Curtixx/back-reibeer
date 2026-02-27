@@ -3,17 +3,26 @@
 namespace App\Services;
 
 use App\Models\Category;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 
 class CategoryService
 {
-    public function getAllCategories(int $page, int $perPage): LengthAwarePaginator
+    /**
+     * @param  array<int>  $ids
+     */
+    public function getAllCategories(int $page, int $perPage, array $ids = []): LengthAwarePaginator
     {
-        $cacheKey = 'categories_page:' . $page . ':per_page:' . $perPage;
-        return Cache::tags(['categories'])->remember($cacheKey, 600, function () use ($page, $perPage) {
-            return Category::where('is_active', true)->paginate($perPage);
+        $cacheKey = 'categories_page:'.$page.':per_page:'.$perPage.':filters:'.md5(serialize($ids));
+
+        return Cache::tags(['categories'])->remember($cacheKey, 600, function () use ($perPage, $ids) {
+            $query = Category::where('is_active', true);
+
+            if (! empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+
+            return $query->paginate($perPage);
         });
     }
 

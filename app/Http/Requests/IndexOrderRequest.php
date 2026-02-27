@@ -24,6 +24,8 @@ class IndexOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'ids' => 'nullable|array',
+            'ids.*' => 'integer|exists:orders,id',
             'number' => 'nullable|string',
             'responsible_name' => 'nullable|string',
             'status' => ['nullable', Rule::enum(OrderStatus::class)],
@@ -37,6 +39,9 @@ class IndexOrderRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'ids.array' => 'O campo ids deve ser um array.',
+            'ids.*.integer' => 'Cada id de comanda deve ser um número inteiro.',
+            'ids.*.exists' => 'Uma das comandas informadas não existe.',
             'number.string' => 'O número da comanda deve ser um texto.',
             'responsible_name.string' => 'O nome do responsável deve ser um texto.',
             'status' => 'O status deve ser "open" ou "closed".',
