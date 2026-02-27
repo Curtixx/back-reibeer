@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\SaleController;
 use App\Http\Controllers\Api\StockController;
+use App\Http\Controllers\Api\UserPermissionController;
 use Illuminate\Support\Facades\Route;
 
 // Rotas de autenticação
@@ -97,4 +98,8 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::prefix('sales')->group(function (): void {
         Route::post('/', [SaleController::class, 'store']);
     });
+
+    Route::get('/permissions', [UserPermissionController::class, 'getPermissions']);
+    Route::get('/users/{user}/permissions', [UserPermissionController::class, 'getUserPermissions']);
+    Route::post('/users/permissions', [UserPermissionController::class, 'syncPermissions']);
 });
