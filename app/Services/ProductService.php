@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Notification;
 use App\Models\Product;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
@@ -77,5 +78,23 @@ class ProductService
     public function deleteProduct(Product $product): bool
     {
         return $product->update(['is_active' => false]);
+    }
+
+    public function sendLowStockNotifications()
+    {
+        $lowStockProducts = Product::query()
+            ->where('is_active', true)
+            ->whereHas('stock', function ($query) {
+                $query->whereColumn('quantity', '<=', 'stock_notice');
+            })
+            ->get();
+
+        foreach ($lowStockProducts as $product) {
+            Notification::create([
+                'type' => 'low_stock',
+                'message' => 'ATENÇÃO: O estoque do produto '.$product->name.' está baixo.',
+                'product_id' => $product->id,
+            ]);
+        }
     }
 }

@@ -14,17 +14,6 @@ class NotificationSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::first();
-        
-        if (!$user) {
-            $user = User::factory()->create([
-                'name' => 'Admin User',
-                'email' => 'admin@example.com',
-            ]);
-        }
-
-        Notification::factory()->count(10)->create([
-            'user_id' => $user->id,
-        ]);
+        Notification::factory()->count(10)->create();
     }
 }

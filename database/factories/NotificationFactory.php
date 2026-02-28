@@ -17,8 +17,8 @@ class NotificationFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => \App\Models\User::factory(),
-            'title' => fake()->sentence(),
+            'type' => 'system',
+            'product_id' => null,
             'message' => fake()->paragraph(),
             'read_at' => fake()->boolean() ? fake()->dateTime() : null,
         ];

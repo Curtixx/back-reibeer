@@ -11,8 +11,8 @@ class Notification extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
-        'title',
+        'type',
+        'product_id',
         'message',
         'read_at',
     ];
@@ -21,8 +21,8 @@ class Notification extends Model
         'read_at' => 'datetime',
     ];
 
-    public function user()
+    public function product()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Product::class);
     }
 }

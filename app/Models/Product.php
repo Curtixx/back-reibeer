@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Product extends Model
 {
@@ -21,5 +22,10 @@ class Product extends Model
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class);
+    }
+
+    public function stock(): HasOne
+    {
+        return $this->hasOne(Stock::class);
     }
 }
