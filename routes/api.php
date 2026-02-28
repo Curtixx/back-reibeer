@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\SaleController;
 use App\Http\Controllers\Api\StockController;
 use App\Http\Controllers\Api\UserPermissionController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 // Rotas de autenticação
@@ -102,4 +103,10 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::get('/permissions', [UserPermissionController::class, 'getPermissions']);
     Route::get('/users/{user}/permissions', [UserPermissionController::class, 'getUserPermissions']);
     Route::post('/users/permissions', [UserPermissionController::class, 'syncPermissions']);
+
+    // Notificações
+    Route::prefix('notifications')->group(function (): void {
+        Route::get('/', [NotificationController::class, 'index']);
+        Route::delete('/{notification}', [NotificationController::class, 'destroy']);
+    });
 });
