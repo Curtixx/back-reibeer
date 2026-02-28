@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\NotificationCreated;
 use App\Models\Notification;
 use App\Models\Product;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -87,14 +88,17 @@ class ProductService
             ->whereHas('stock', function ($query) {
                 $query->whereColumn('quantity', '<=', 'stock_notice');
             })
+            ->take(5)
             ->get();
 
         foreach ($lowStockProducts as $product) {
-            Notification::create([
+            $notification = Notification::create([
                 'type' => 'low_stock',
                 'message' => 'ATENÇÃO: O estoque do produto '.$product->name.' está baixo.',
                 'product_id' => $product->id,
             ]);
+
+            event(new NotificationCreated($notification));
         }
     }
 }
