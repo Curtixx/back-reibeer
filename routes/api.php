@@ -36,40 +36,40 @@ Route::get('/categories/{category}', [CategoryController::class, 'show']);
 
 // Rotas protegidas
 Route::middleware('auth:sanctum')->group(function (): void {
-    Route::prefix('dashboard')->group(function (): void {
+    Route::prefix('dashboard')->middleware('permission:dashboard')->group(function (): void {
         Route::get('/', [DashboardController::class, 'index']);
     });
 
     // Gestão de produtos
-    Route::prefix('products')->group(function (): void {
+    Route::prefix('products')->middleware('permission:products')->group(function (): void {
         Route::post('/', [ProductController::class, 'store']);
         Route::put('/{product}', [ProductController::class, 'update']);
         Route::delete('/{product}', [ProductController::class, 'destroy']);
     });
 
     // Gestão de funcionários
-    Route::prefix('employees')->group(function (): void {
+    Route::prefix('employees')->middleware('permission:employees')->group(function (): void {
         Route::post('/', [EmployeesController::class, 'store']);
         Route::put('/{employee}', [EmployeesController::class, 'update']);
         Route::delete('/{employee}', [EmployeesController::class, 'destroy']);
     });
 
     // Gestão de combos
-    Route::prefix('combos')->group(function (): void {
+    Route::prefix('combos')->middleware('permission:combos')->group(function (): void {
         Route::post('/', [ComboController::class, 'store']);
         Route::put('/{combo}', [ComboController::class, 'update']);
         Route::delete('/{combo}', [ComboController::class, 'destroy']);
     });
 
     // Gestão de categorias
-    Route::prefix('categories')->group(function (): void {
+    Route::prefix('categories')->middleware('permission:categories')->group(function (): void {
         Route::post('/', [CategoryController::class, 'store']);
         Route::put('/{category}', [CategoryController::class, 'update']);
         Route::delete('/{category}', [CategoryController::class, 'destroy']);
     });
 
     // Gestão de comandas
-    Route::prefix('orders')->group(function (): void {
+    Route::prefix('orders')->middleware('permission:orders')->group(function (): void {
         Route::post('/', [OrderController::class, 'store']);
         Route::put('/{order}', [OrderController::class, 'update']);
         Route::delete('/{order}', [OrderController::class, 'destroy']);
@@ -78,14 +78,14 @@ Route::middleware('auth:sanctum')->group(function (): void {
     });
 
     // Gestão de caixa
-    Route::prefix('cashier')->group(function (): void {
+    Route::prefix('cashier')->middleware('permission:cashier')->group(function (): void {
         Route::get('/opened', [CashierController::class, 'cashierOpened']);
         Route::post('/open', [CashierController::class, 'openCashier']);
         Route::post('/close', [CashierController::class, 'closeCashier']);
     });
 
     // Estoque
-    Route::prefix('stocks')->group(function (): void {
+    Route::prefix('stocks')->middleware('permission:stocks')->group(function (): void {
         Route::get('/', [StockController::class, 'index']);
         Route::get('/{stock}', [StockController::class, 'show']);
         Route::post('/', [StockController::class, 'store']);
@@ -95,7 +95,7 @@ Route::middleware('auth:sanctum')->group(function (): void {
     });
 
     // Vendas
-    Route::prefix('sales')->group(function (): void {
+    Route::prefix('sales')->middleware('permission:sales')->group(function (): void {
         Route::post('/', [SaleController::class, 'store']);
     });
 
